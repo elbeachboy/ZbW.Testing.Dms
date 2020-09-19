@@ -1,4 +1,14 @@
-﻿namespace ZbW.Testing.Dms.Client.ViewModels
+﻿using System;
+using System.ComponentModel;
+using System.Configuration;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Documents;
+using System.Xml.Serialization;
+using Microsoft.Win32;
+
+namespace ZbW.Testing.Dms.Client.ViewModels
 {
     using System.Collections.Generic;
 
@@ -110,17 +120,68 @@
 
         private void OnCmdOeffnen()
         {
-            // TODO: Add your Code here
+          if (OnCanCmdOeffnen())
+          {
+            var item = this.SelectedMetadataItem;
+            System.Diagnostics.Process.Start(item.Path);
+          }
         }
 
         private void OnCmdSuchen()
         {
-            // TODO: Add your Code here
-        }
+          if (String.IsNullOrEmpty(this.SelectedTypItem) && !String.IsNullOrEmpty(this.Suchbegriff))
+          {
+            string search = this.Suchbegriff;
+            var result = getList().Where(s => s.Bezeichnung == search || s.Stichwoerter == search);
+            List<MetadataItem> tempList = new List<MetadataItem>();
+            foreach (var s in result)
+            {
+              tempList.Add(s);
+            }
 
+            this.FilteredMetadataItems = tempList;
+          }
+          else if(!String.IsNullOrEmpty(this.SelectedTypItem) && String.IsNullOrEmpty(this.Suchbegriff))
+          {
+            string search = this.Suchbegriff;
+            var result = getList().Where(s => (s.Typ == this.SelectedTypItem));
+            List<MetadataItem> tempList = new List<MetadataItem>();
+            foreach (var s in result)
+            {
+              tempList.Add(s);
+            }
+
+            this.FilteredMetadataItems = tempList;
+          }
+          else
+          {
+            MessageBox.Show("Bitte Suchkriterien eingeben.", "Kriterien eingeben", MessageBoxButton.OK,
+              MessageBoxImage.Information);
+          }
+        }
+        
         private void OnCmdReset()
         {
-            // TODO: Add your Code here
+          List<MetadataItem> list = new List<MetadataItem>();
+          this.FilteredMetadataItems = list;
+          this.Suchbegriff = "";
+          this.SelectedTypItem = null;
+
         }
-    }
+
+        private List<MetadataItem> getList()
+        {
+          string[] xmlFiles = Directory.GetFiles(ConfigurationManager.AppSettings["RepositoryDir"], "*.xml", SearchOption.AllDirectories);
+          var mySerializer = new XmlSerializer(typeof(MetadataItem));
+          List<MetadataItem> list = new List<MetadataItem>();
+          foreach (var s in xmlFiles)
+          {
+            var myFileStream = new FileStream(s, FileMode.Open);
+            var item = (MetadataItem)mySerializer.Deserialize(myFileStream);
+            list.Add(item);
+          }
+
+          return list;
+        }
+  }
 }

@@ -1,4 +1,6 @@
-﻿namespace ZbW.Testing.Dms.Client.Views
+﻿using System.Windows;
+
+namespace ZbW.Testing.Dms.Client.Views
 {
     using System.Windows.Controls;
 

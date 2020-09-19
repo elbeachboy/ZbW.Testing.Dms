@@ -1,4 +1,10 @@
-﻿namespace ZbW.Testing.Dms.Client.ViewModels
+﻿using System.ComponentModel;
+using System.Net.Mime;
+using System.Windows;
+using ZbW.Testing.Dms.Client.Model;
+using ZbW.Testing.Dms.Client.Services;
+
+namespace ZbW.Testing.Dms.Client.ViewModels
 {
     using System;
     using System.Collections.Generic;
@@ -32,12 +38,15 @@
 
         private DateTime? _valutaDatum;
 
+        private FileInteraction fi;
+
         public DocumentDetailViewModel(string benutzer, Action navigateBack)
         {
             _navigateBack = navigateBack;
             Benutzer = benutzer;
             Erfassungsdatum = DateTime.Now;
             TypItems = ComboBoxItems.Typ;
+            fi = new FileInteraction(_erfassungsdatum.Year.ToString());
 
             CmdDurchsuchen = new DelegateCommand(OnCmdDurchsuchen);
             CmdSpeichern = new DelegateCommand(OnCmdSpeichern);
@@ -164,9 +173,41 @@
 
         private void OnCmdSpeichern()
         {
-            // TODO: Add your Code here
+          if (Validation())
+          {
+            fi.saveFile(this._filePath);
+
+            MetadataItem m = new MetadataItem();
+            m.Bezeichnung = this.Bezeichnung;
+            m.ValutaDatum = this.ValutaDatum;
+            m.Stichwoerter = this.Stichwoerter;
+            m.Typ = this.SelectedTypItem;
+            m.Path = fi.SavePath;
+            fi.createMetadataFile(m);
+
+            if (this.IsRemoveFileEnabled)
+            {
+              fi.deleteFile(this._filePath);
+            }
 
             _navigateBack();
+          }
         }
+
+        private bool Validation()
+        {
+          if ((String.IsNullOrEmpty(this.Bezeichnung) || 
+              String.IsNullOrEmpty(this.SelectedTypItem) || String.IsNullOrEmpty(this.ValutaDatum.ToString())))
+          {
+            MessageBox.Show("Alle Felder müssen ausgefüllt sein.", "Validierung fehlgeschlagen", MessageBoxButton.OK,
+              MessageBoxImage.Error);
+            return false;
+          }
+          else
+          {
+            return true;
+          }
+        }
+
     }
 }
