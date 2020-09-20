@@ -18,7 +18,7 @@ namespace ZbW.Testing.Dms.Client.ViewModels
     using ZbW.Testing.Dms.Client.Model;
     using ZbW.Testing.Dms.Client.Repositories;
 
-    internal class SearchViewModel : BindableBase
+    public class SearchViewModel : BindableBase
     {
         private List<MetadataItem> _filteredMetadataItems;
 
@@ -37,7 +37,9 @@ namespace ZbW.Testing.Dms.Client.ViewModels
             CmdSuchen = new DelegateCommand(OnCmdSuchen);
             CmdReset = new DelegateCommand(OnCmdReset);
             CmdOeffnen = new DelegateCommand(OnCmdOeffnen, OnCanCmdOeffnen);
-        }
+
+            this.setList();
+    }
 
         public DelegateCommand CmdOeffnen { get; }
 
@@ -120,19 +122,33 @@ namespace ZbW.Testing.Dms.Client.ViewModels
 
         private void OnCmdOeffnen()
         {
+          this.Oeffnen();
+        }
+
+        private void OnCmdSuchen()
+        {
+         this.Suchen();
+        }
+        
+        private void OnCmdReset()
+        {
+          this.Reset();
+        }
+
+        public void Oeffnen()
+        {
           if (OnCanCmdOeffnen())
           {
             var item = this.SelectedMetadataItem;
             System.Diagnostics.Process.Start(item.Path);
           }
         }
-
-        private void OnCmdSuchen()
+        public void Suchen()
         {
           if (String.IsNullOrEmpty(this.SelectedTypItem) && !String.IsNullOrEmpty(this.Suchbegriff))
           {
             string search = this.Suchbegriff;
-            var result = getList().Where(s => s.Bezeichnung == search || s.Stichwoerter == search);
+            var result = this.FilteredMetadataItems.Where(s => s.Bezeichnung.Contains(search) || s.Stichwoerter.Contains(search));
             List<MetadataItem> tempList = new List<MetadataItem>();
             foreach (var s in result)
             {
@@ -141,10 +157,10 @@ namespace ZbW.Testing.Dms.Client.ViewModels
 
             this.FilteredMetadataItems = tempList;
           }
-          else if(!String.IsNullOrEmpty(this.SelectedTypItem) && String.IsNullOrEmpty(this.Suchbegriff))
+          else if (!String.IsNullOrEmpty(this.SelectedTypItem) && String.IsNullOrEmpty(this.Suchbegriff))
           {
             string search = this.Suchbegriff;
-            var result = getList().Where(s => (s.Typ == this.SelectedTypItem));
+            var result = this.FilteredMetadataItems.Where(s => (s.Typ == this.SelectedTypItem));
             List<MetadataItem> tempList = new List<MetadataItem>();
             foreach (var s in result)
             {
@@ -155,21 +171,20 @@ namespace ZbW.Testing.Dms.Client.ViewModels
           }
           else
           {
-            MessageBox.Show("Bitte Suchkriterien eingeben.", "Kriterien eingeben", MessageBoxButton.OK,
+            this.FilteredMetadataItems = null;
+        MessageBox.Show("Bitte Suchkriterien eingeben.", "Kriterien eingeben", MessageBoxButton.OK,
               MessageBoxImage.Information);
           }
         }
-        
-        private void OnCmdReset()
+        public void Reset()
         {
           List<MetadataItem> list = new List<MetadataItem>();
           this.FilteredMetadataItems = list;
           this.Suchbegriff = "";
           this.SelectedTypItem = null;
-
         }
 
-        private List<MetadataItem> getList()
+        public void setList()
         {
           string[] xmlFiles = Directory.GetFiles(ConfigurationManager.AppSettings["RepositoryDir"], "*.xml", SearchOption.AllDirectories);
           var mySerializer = new XmlSerializer(typeof(MetadataItem));
@@ -181,7 +196,7 @@ namespace ZbW.Testing.Dms.Client.ViewModels
             list.Add(item);
           }
 
-          return list;
+          this.FilteredMetadataItems = list;
         }
   }
 }

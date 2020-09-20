@@ -39,6 +39,8 @@ namespace ZbW.Testing.Dms.Client.Services
       set => year = value;
     }
 
+    public Guid Guid => GUID;
+
     public string SavePath
     {
       get => savePath;

@@ -16,9 +16,11 @@ namespace ZbW.Testing.Dms.Client.ViewModels
 
     using ZbW.Testing.Dms.Client.Repositories;
 
-    internal class DocumentDetailViewModel : BindableBase
+    public class DocumentDetailViewModel : BindableBase
     {
         private readonly Action _navigateBack;
+
+        private bool hasError;
 
         private string _benutzer;
 
@@ -40,6 +42,8 @@ namespace ZbW.Testing.Dms.Client.ViewModels
 
         private FileInteraction fi;
 
+        private MetadataItem m;
+
         public DocumentDetailViewModel(string benutzer, Action navigateBack)
         {
             _navigateBack = navigateBack;
@@ -50,6 +54,24 @@ namespace ZbW.Testing.Dms.Client.ViewModels
 
             CmdDurchsuchen = new DelegateCommand(OnCmdDurchsuchen);
             CmdSpeichern = new DelegateCommand(OnCmdSpeichern);
+        }
+
+        public bool HasError
+        {
+          get => hasError;
+          set => hasError = value;
+        }
+
+        public MetadataItem M
+        {
+          get => m;
+          set => m = value;
+        }
+
+        public string FilePath
+        {
+          get => _filePath;
+          set => _filePath = value;
         }
 
         public string Stichwoerter
@@ -162,22 +184,31 @@ namespace ZbW.Testing.Dms.Client.ViewModels
 
         private void OnCmdDurchsuchen()
         {
-            var openFileDialog = new OpenFileDialog();
-            var result = openFileDialog.ShowDialog();
-
-            if (result.GetValueOrDefault())
-            {
-                _filePath = openFileDialog.FileName;
-            }
+          this.Durchsuchen();
         }
 
         private void OnCmdSpeichern()
+        {
+          this.Speichern();
+        }
+
+        public void Durchsuchen()
+        {
+          var openFileDialog = new OpenFileDialog();
+          var result = openFileDialog.ShowDialog();
+
+          if (result.GetValueOrDefault())
+          {
+            _filePath = openFileDialog.FileName;
+          }
+        }
+        public void Speichern()
         {
           if (Validation())
           {
             fi.saveFile(this._filePath);
 
-            MetadataItem m = new MetadataItem();
+            this.m = new MetadataItem();
             m.Bezeichnung = this.Bezeichnung;
             m.ValutaDatum = this.ValutaDatum;
             m.Stichwoerter = this.Stichwoerter;
@@ -190,22 +221,21 @@ namespace ZbW.Testing.Dms.Client.ViewModels
               fi.deleteFile(this._filePath);
             }
 
-            _navigateBack();
           }
         }
 
-        private bool Validation()
+        public bool Validation()
         {
           if ((String.IsNullOrEmpty(this.Bezeichnung) || 
-              String.IsNullOrEmpty(this.SelectedTypItem) || String.IsNullOrEmpty(this.ValutaDatum.ToString())))
+               String.IsNullOrEmpty(this.SelectedTypItem) || String.IsNullOrEmpty(this.ValutaDatum.ToString())))
           {
             MessageBox.Show("Alle Felder müssen ausgefüllt sein.", "Validierung fehlgeschlagen", MessageBoxButton.OK,
               MessageBoxImage.Error);
-            return false;
+            return hasError = false;
           }
           else
           {
-            return true;
+            return hasError = true;
           }
         }
 
