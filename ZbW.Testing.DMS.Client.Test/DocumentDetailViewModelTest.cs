@@ -50,5 +50,26 @@ namespace ZbW.Testing.DMS.Client.Test
       docDetailViewModel.Speichern();
       Assert.That(File.Exists(docDetailViewModel.FilePath), Is.EqualTo(false));
     }
+    [Test]
+    public void TestHasError()
+    {
+      var docDetailViewModel = new DocumentDetailViewModel("simon", null);
+      docDetailViewModel.HasError = true;
+      Assert.That(docDetailViewModel.HasError,Is.EqualTo(true));
+    }
+
+    [Test]
+    public void TestTypeItems()
+    {
+      var docDetailViewModel = new DocumentDetailViewModel("simon", null);
+      Assert.That(docDetailViewModel.TypItems.Count, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void TestBenutzerIstGesetzt()
+    {
+      var docDetailViewModel = new DocumentDetailViewModel("simon", null);
+      Assert.That(docDetailViewModel.Benutzer, Is.EqualTo("simon"));
+    }
   }
 }

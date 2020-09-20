@@ -54,5 +54,12 @@ namespace ZbW.Testing.DMS.Client.Test
       searchViewModel.Reset();
       Assert.That(searchViewModel.FilteredMetadataItems.Count == 0,Is.EqualTo(true));
     }
+
+    [Test]
+    public void TestTypItems()
+    {
+      var searchViewModel = new SearchViewModel();
+      Assert.That(searchViewModel.TypItems.Count, Is.EqualTo(2));
+    }
   }
 }
